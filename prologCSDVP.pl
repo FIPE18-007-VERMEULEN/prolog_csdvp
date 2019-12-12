@@ -44,49 +44,49 @@ finalSkills([
 ]).
 
 courses([
-  [ -1, /* course 0 */
+  [ -1, /* EMPTY COURSE */
     [ [] ], /* skills given */
     [ [] ], /* prerequisite */
     [ 0, 1, 2, 3, 4 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 0, /* course 0 */
+  [ 0, /* course 0*/
     [ [1, 75], [4, 50] ], /* skills given */
     [ [] ], /* prerequisite */
     [ 0 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 1, /* course 0 */
+  [ 1, /* course 1*/
     [ [3, 50], [1, 25] ], /* skills given */
     [ [1, 3] ], /* prerequisite */
     [ 1, 2 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 2, /* course 0 */
+  [ 2, /* course 2 */
     [ [0,50], [2,50], [5,25] ], /* skills given */
     [ [5, 3] ], /* prerequisite */
     [ 2, 3 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 3, /* course 0 */
+  [ 3, /* course 3 */
     [ [5,50] ], /* skills given */
     [ [1,4], [4,2] ], /* prerequisite */
     [ 1, 2 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 4, /* course 0 */
+  [ 4, /* course 4 */
     [ [1,35], [2,25], [5,5] ], /* skills given */
     [ [2,2], [4,4] ], /* prerequisite */
     [ 2, 3, 4 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 5, /* course 0 */
+  [ 5, /* course 5 */
     [ [6,40], [3,45], [1,10] ], /* skills given */
     [ [2,2], [4,4] ], /* prerequisite */
     [ 2, 5, 6 ], /* time frame */
     [ 2 ] /* ects */
   ],
-  [ 6, /* course 0 */
+  [ 6, /* course 6 */
     [ [0,25], [2,40] ], /* skills given */
     [ [3,4] ], /* prerequisite */
     [ 3, 5, 6 ], /* time frame */
@@ -94,20 +94,20 @@ courses([
   ]
 ]).
 
-
+/* === GLOBAL CONFIGURATION */
 minECTS(8).
 nbSemester(4).
 nbCourses(5).
 nbCourseBySemester(1).
 
-% === GETTER AND UTILITY ===
+/* === GETTER AND UTILITY === */
 getIDCourse([I|_], I).
 
 isNbCoursesIsEQ(S):- length(S,L), nbCourseBySemester(A), nbSemester(B), L =:= A * B. %correct size of S.
 isNbCoursesIsLT(S):- length(S,L), nbCourseBySemester(A), nbSemester(B), L < A * B.
 isNbCoursesIsGT(S):- length(S,L), nbCourseBySemester(A), nbSemester(B), L > A * B. %correct size of S.
 
-% === ECTS CONSTRAINTS ===
+/* === ECTS CONSTRAINTS === */
 ectsConstraintsSolver([X],V):- minECTS(M), (X+V) >= M.
 ectsConstraintsSolver([X|Y],V):- ectsConstraintsSolver(Y,V+X).
 
@@ -117,34 +117,34 @@ ectsListBuilder([X|Y],K):-nth0(4,X,A),ectsListBuilder(Y,L), append(A,L,K).
 
 ectsConstraintsCaller(X):- ectsListBuilder(X,L), write(X), ectsConstraintsSolver(L,0).
 
-% === ALL DIFFERENTS ===
+/* === ALL DIFFERENTS === */
 isDiffTwo(X,Y):- getIDCourse(X,XID), getIDCourse(Y,YID), XID \= YID.
 
 allDiff([_]):-!.
 allDiff([X,Y]):- !, isDiffTwo(X,Y).
 allDiff([X,Y|Z]):- isDiffTwo(X,Y), allDiff([X|Z]), allDiff([Y|Z]).
 
-% === TIME CONSTRAINTS
+/* === TIME CONSTRAINTS */
 
 timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is PositionInSol / C, nth0(3,Course,TimeFrame), member(X,TimeFrame).
 
 timeConstraintsCaller(Course, PositionInSol):-timeConstraintsSolver(Course, PositionInSol).
 
-% === PREREQUISITE CONSTRAINTS
+/* === PREREQUISITE CONSTRAINTS */
 prerequisiteConstraintsSolver(S,C):-getOnlySkills(S,Skills),getOnlyPrereq([C],Prereq), subset(Prereq,Skills),!.
 
 prerequisiteConstraintsCaller(CurrentSol,CtoCheck):- prerequisiteConstraintsSolver(CurrentSol,CtoCheck).
 
-% === FINAL SKILLS CONSTRAINTS
+/* === FINAL SKILLS CONSTRAINTS */
 finalSkillsConstraintsSolver(CurrentSol, FinalSkills):- getOnlySkills(CurrentSol,S), flattenSkill(FinalSkills,F), subset(F,S),!.
 
 finalSkillsConstraintsCaller(CurrentSol):- finalSkills(F), finalSkillsConstraintsSolver(CurrentSol, F).
 
-% === SKILLS ACQUIRED
-  % === SKILLS + MASTERY
+/* === SKILLS ACQUIRED */
+  /* === SKILLS + MASTERY */
     getSkillsValueAcquired([],[]).
     getSkillsValueAcquired([[_,Skill|_]|Y],L):-getSkillsValueAcquired(Y,Z), append(Skill,Z,L).
-  % === ONLY SKILLS
+  /* === ONLY SKILLS */
     flattenSkill([],[]).
     flattenSkill([[]],[]).
     flattenSkill([[X|_]],[X]). %Used to remove the sublist, and create a nice depth-1 list with only skill id
@@ -156,7 +156,7 @@ finalSkillsConstraintsCaller(CurrentSol):- finalSkills(F), finalSkillsConstraint
     getOnlyPrereq([],[]).
     getOnlyPrereq([[_,_,Prereq|_]|Y],L):-getOnlyPrereq(Y,Z), flattenSkill(Prereq,FlatSkill), append(FlatSkill,Z,L).
 
-% === SOLVER ===
+/* === SOLVER === */
 solve(S):-
   courses(C),
   searchSolutions(C,[],S,[]).
