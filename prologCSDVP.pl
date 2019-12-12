@@ -107,6 +107,9 @@ isNbCoursesIsEQ(S):- length(S,L), nbCourseBySemester(A), nbSemester(B), L =:= A 
 isNbCoursesIsLT(S):- length(S,L), nbCourseBySemester(A), nbSemester(B), L < A * B.
 isNbCoursesIsGT(S):- length(S,L), nbCourseBySemester(A), nbSemester(B), L > A * B. %correct size of S.
 
+displaySolution([]).
+displaySolution([ [ID|_]|Y]):- write("\n"), write("Course"), write(ID), displaySolution(Y).
+
 /* === ECTS CONSTRAINTS === */
 ectsConstraintsSolver([X],V):- minECTS(M), (X+V) >= M.
 ectsConstraintsSolver([X|Y],V):- ectsConstraintsSolver(Y,V+X).
@@ -170,6 +173,3 @@ searchSolutions(C,S,Sol,Tabou):-  isNbCoursesIsLT(S), length(S, SizeOfS),
                                   prerequisiteConstraintsCaller(S,OneC),
                                   append(S,[OneC],N), allDiff(N),
                                   searchSolutions(C,N,Sol,Tabou).
-
-displaySolution([]).
-displaySolution([ [ID|_]|Y]):- write("\n"), write("Course"), write(ID), displaySolution(Y).
