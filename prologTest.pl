@@ -95,7 +95,7 @@ courses([
 ]).
 
 
-minECTS(9).
+minECTS(8).
 nbSemester(4).
 nbCourses(5).
 nbCourseBySemester(1).
@@ -121,7 +121,7 @@ ectsConstraintsCaller(X):- ectsListBuilder(X,L), write(X), ectsConstraintsSolver
 isDiffTwo(X,Y):- getIDCourse(X,XID), getIDCourse(Y,YID), XID \= YID.
 
 allDiff([_]):-!.
-allDiff([X,Y]):- isDiffTwo(X,Y), !.
+allDiff([X,Y]):- !, isDiffTwo(X,Y).
 allDiff([X,Y|Z]):- isDiffTwo(X,Y), allDiff([X|Z]), allDiff([Y|Z]).
 
 % === TIME CONSTRAINTS
@@ -130,6 +130,32 @@ timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is Positi
 
 timeConstraintsCaller(Course, PositionInSol):-timeConstraintsSolver(Course, PositionInSol).
 
+% === PREREQUISITE CONSTRAINTS
+prerequisiteConstraintsSolver(S,C):-getOnlySkills(S,Skills),getOnlyPrereq([C],Prereq), subset(Prereq,Skills),!.
+
+prerequisiteConstraintsCaller(CurrentSol,CtoCheck):- prerequisiteConstraintsSolver(CurrentSol,CtoCheck).
+
+% === FINAL SKILLS CONSTRAINTS
+finalSkillsConstraintsSolver(CurrentSol, FinalSkills):- getOnlySkills(CurrentSol,S), flattenSkill(FinalSkills,F), subset(F,S),!.
+
+finalSkillsConstraintsCaller(CurrentSol):- finalSkills(F), finalSkillsConstraintsSolver(CurrentSol, F).
+
+% === SKILLS ACQUIRED
+  % === SKILLS + MASTERY
+    getSkillsValueAcquired([],[]).
+    getSkillsValueAcquired([[_,Skill|_]|Y],L):-getSkillsValueAcquired(Y,Z), append(Skill,Z,L).
+  % === ONLY SKILLS
+    flattenSkill([],[]).
+    flattenSkill([[]],[]).
+    flattenSkill([[X|_]],[X]). %Used to remove the sublist, and create a nice depth-1 list with only skill id
+    flattenSkill([[X|_]|Y],L):-flattenSkill(Y,Z), append([X],Z,L).
+
+    getOnlySkills([],[]).
+    getOnlySkills([[_,Skill|_]|Y],L):-getOnlySkills(Y,Z), flattenSkill(Skill,FlatSkill), append(FlatSkill,Z,L).
+
+    getOnlyPrereq([],[]).
+    getOnlyPrereq([[_,_,Prereq|_]|Y],L):-getOnlyPrereq(Y,Z), flattenSkill(Prereq,FlatSkill), append(FlatSkill,Z,L).
+
 % === SOLVER ===
 solve(S):-
   courses(C),
@@ -137,12 +163,13 @@ solve(S):-
 
 chooseNewCourse(C,OneC,Tabou):- member(OneC, C).
 
-searchSolutions(_,S,S,_):- isNbCoursesIsEQ(S),!, ectsConstraintsCaller(S), displaySolution(S).
+searchSolutions(_,S,S,_):- isNbCoursesIsEQ(S),!, ectsConstraintsCaller(S), finalSkillsConstraintsCaller(S), displaySolution(S).
 searchSolutions(C,S,Sol,Tabou):-  isNbCoursesIsLT(S), length(S, SizeOfS),
                                   chooseNewCourse(C,OneC,Tabou), %Backtracker
                                   timeConstraintsCaller(OneC, SizeOfS), %check if the course picked is ok
+                                  prerequisiteConstraintsCaller(S,OneC),
                                   append(S,[OneC],N), allDiff(N),
                                   searchSolutions(C,N,Sol,Tabou).
 
 displaySolution([]).
-displaySolution([ [ID|_]|Y]):-write("Course"), write(ID), write("\n"), displaySolution(Y).
+displaySolution([ [ID|_]|Y]):- write("\n"), write("Course"), write(ID), displaySolution(Y).
