@@ -121,8 +121,11 @@ ectsListBuilder([X|Y],K):-nth0(4,X,A),ectsListBuilder(Y,L), append(A,L,K).
 ectsConstraintsCaller(X):- ectsListBuilder(X,L), write(X), ectsConstraintsSolver(L,0).
 
 /* === ALL DIFFERENTS === */
+isDiffTwo(_,-1).%If empty course, it's always ok, whatever X
+isDiffTwo(-1,_).%If empty course, it's always ok, whatever X
 isDiffTwo(X,Y):- getIDCourse(X,XID), getIDCourse(Y,YID), XID \= YID.
 
+%EXCEPT EMPTY !!!!! @TODO COURSE
 allDiff([_]):-!.
 allDiff([X,Y]):- !, isDiffTwo(X,Y).
 allDiff([X,Y|Z]):- isDiffTwo(X,Y), allDiff([X|Z]), allDiff([Y|Z]).
