@@ -98,7 +98,7 @@ courses([
 minECTS(8).
 nbSemester(4).
 nbCourses(5).
-nbCourseBySemester(1).
+nbCourseBySemester(2).
 
 /* === GETTER AND UTILITY === */
 getIDCourse([I|_], I).
@@ -126,13 +126,21 @@ isDiffTwo(-1,_).%If empty course, it's always ok, whatever X
 isDiffTwo(X,Y):- getIDCourse(X,XID), getIDCourse(Y,YID), XID \= YID.
 
 %EXCEPT EMPTY !!!!! @TODO COURSE
-allDiff([_]):-!.
-allDiff([X,Y]):- !, isDiffTwo(X,Y).
-allDiff([X,Y|Z]):- isDiffTwo(X,Y), allDiff([X|Z]), allDiff([Y|Z]).
+% allDiff([_]):-!.
+% allDiff([X,Y]):- !, isDiffTwo(X,Y).
+% allDiff([X,Y|Z]):- isDiffTwo(X,Y), allDiff([X|Z]), allDiff([Y|Z]).
+
+buildIDCoursesList([X],[I]):-getIDCourse(X,I),!.
+buildIDCoursesList([X|Y],[I|L]):-buildIDCoursesList(Y,L),getIDCourse(X,I).
+
+allDiff(S):-buildIDCoursesList(S,L), subtract(L, [-1], C), allUniqueExceptEmpty(C).
+
+allUniqueExceptEmpty([]).
+allUniqueExceptEmpty([X|Y]):- \+ member(X,Y), allUniqueExceptEmpty(Y).
 
 /* === TIME CONSTRAINTS */
 
-timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is PositionInSol / C, nth0(3,Course,TimeFrame), member(X,TimeFrame).
+timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is div(PositionInSol, C) , nth0(3,Course,TimeFrame), member(X,TimeFrame).
 
 timeConstraintsCaller(Course, PositionInSol):-timeConstraintsSolver(Course, PositionInSol).
 
