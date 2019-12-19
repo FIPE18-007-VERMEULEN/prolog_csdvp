@@ -120,20 +120,21 @@ ectsListBuilder([X|Y],K):-nth0(4,X,A),ectsListBuilder(Y,L), append(A,L,K).
 
 ectsConstraintsCaller(X):- ectsListBuilder(X,L), write(X), ectsConstraintsSolver(L,0).
 
+/* === FUZZYFICATION PLACEBO ENGINE  === */
+fuzzifyMastery(X,0):-X >= 0, X < 20.%fuzzifyMastery(Value,MasterySet)
+fuzzifyMastery(X,1):-X >= 20,X < 40.
+fuzzifyMastery(X,2):-X >= 40,X < 60.
+fuzzifyMastery(X,3):-X >= 60,X < 80.
+fuzzifyMastery(X,4):-X >=80.
+
+/* === DECAY FUNCTION === */
+decayFunction(X,Y):- Y is exp((X / 1.25)) + 5.
+
 /* === ALL DIFFERENTS === */
-isDiffTwo(_,-1).%If empty course, it's always ok, whatever X
-isDiffTwo(-1,_).%If empty course, it's always ok, whatever X
-isDiffTwo(X,Y):- getIDCourse(X,XID), getIDCourse(Y,YID), XID \= YID.
-
-%EXCEPT EMPTY !!!!! @TODO COURSE
-% allDiff([_]):-!.
-% allDiff([X,Y]):- !, isDiffTwo(X,Y).
-% allDiff([X,Y|Z]):- isDiffTwo(X,Y), allDiff([X|Z]), allDiff([Y|Z]).
-
 buildIDCoursesList([X],[I]):-getIDCourse(X,I),!.
 buildIDCoursesList([X|Y],[I|L]):-buildIDCoursesList(Y,L),getIDCourse(X,I).
 
-allDiff(S):-buildIDCoursesList(S,L), subtract(L, [-1], C), allUniqueExceptEmpty(C).
+allDiff(S):-buildIDCoursesList(S,L), subtract(L, [-1], C), allUniqueExceptEmpty(C). %subtract remove empty course of the current solution to check redudancy of courses
 
 allUniqueExceptEmpty([]).
 allUniqueExceptEmpty([X|Y]):- \+ member(X,Y), allUniqueExceptEmpty(Y).
@@ -145,6 +146,32 @@ timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is div(Po
 timeConstraintsCaller(Course, PositionInSol):-timeConstraintsSolver(Course, PositionInSol).
 
 /* === PREREQUISITE CONSTRAINTS */
+% prerequisiteConstraintsCaller2(CurrentSol,CtoCheck,Length):- prerequisiteConstraintsSolver(CurrentSol,CtoCheck),
+%   nbCourseBySemester(N), TimeFrame is div(Length,N),
+%   getSkillsValueAcquired(CurrentSol,Sks),
+%   getPrereqValueAcquired([C],Prq),
+%   prerequisiteConstraintsSolver2(Sks,Prq,TimeFrame).
+%
+% prerequisiteSolver(CurrentSol, CtoCheck, TimeFrame):-courseIncludeSkillsForPrereq(),
+% courseIncludeSkillsForPrereq().
+% timeIntervalForSkill(Skill,Courses,Distance).
+%
+% a(CurrentSol,[_,_,[P|Ps],_]):-b(CurrentSol,P),a(CurrentSol,[_,_,[Ps],_]).
+%
+% b([],_).
+% b([C],[PID,Set]):-checkIfCourseContainsSkill(C,PID,V), UpdateV in global list
+% b([C|Y],[PID,Set]):-checkIfCourseContainsSkill(C,PID,V),
+% b([_|Y],P):-b(Y,P).
+
+checkIfCourseContainsSkill([_,[[]]|_],_,_):-fail.
+checkIfCourseContainsSkill([_,[[S,M]]|_],S,[S,M]):-!.
+checkIfCourseContainsSkill([_,[[S,M]|_]|_],S,[S,M]):-!.
+checkIfCourseContainsSkill([_,[[S,_]|Skills]|_],SID,M):-checkIfCourseContainsSkill([_,Skills,_],SID,M).
+
+decayManager([S,_],Range,DecayedSkills, NewDS):- member([S,K],DecayedSkills),!,decayFunction(Range,Y), V is K - Y, subtract(DecayedSkills,[[S,K]],TmpDS),append(TmpDS,[[S,V]],NewDS).
+decayManager([S,M],Range,DecayedSkills, [[S,V]|DecayedSkills]):- decayFunction(Range,Y), V is M - Y.
+
+
 prerequisiteConstraintsSolver(S,C):-getOnlySkills(S,Skills),getOnlyPrereq([C],Prereq), subset(Prereq,Skills),!.
 
 prerequisiteConstraintsCaller(CurrentSol,CtoCheck):- prerequisiteConstraintsSolver(CurrentSol,CtoCheck).
@@ -158,10 +185,14 @@ finalSkillsConstraintsCaller(CurrentSol):- finalSkills(F), finalSkillsConstraint
   /* === SKILLS + MASTERY */
     getSkillsValueAcquired([],[]).
     getSkillsValueAcquired([[_,Skill|_]|Y],L):-getSkillsValueAcquired(Y,Z), append(Skill,Z,L).
+
+    getPrereqValueAcquired([],[]).
+    getPrereqValueAcquired([[_,_,Prereq|_]|Y],L):-getPrereqValueAcquired(Y,Z), append(Prereq,Z,L).
+
   /* === ONLY SKILLS */
-    flattenSkill([],[]).
-    flattenSkill([[]],[]).
-    flattenSkill([[X|_]],[X]). %Used to remove the sublist, and create a nice depth-1 list with only skill id
+    flattenSkill([],[]):-!.
+    flattenSkill([[]],[]):-!.
+    flattenSkill([[X|_]],[X]):-!. %Used to remove the sublist, and create a nice depth-1 list with only skill id
     flattenSkill([[X|_]|Y],L):-flattenSkill(Y,Z), append([X],Z,L).
 
     getOnlySkills([],[]).
