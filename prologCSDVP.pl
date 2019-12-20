@@ -128,8 +128,8 @@ fuzzifyMastery(X,3):-X >= 60,X < 80.
 fuzzifyMastery(X,4):-X >=80.
 
 /* === DECAY FUNCTION === */
-% decayFunction(X,Y):- Y is exp((X / 1.25)) + 5.
-decayFunction(X,X).
+decayFunction(X,Y):- Y is exp((X / 1.25)) + 5.
+% decayFunction(X,X).
 
 /* === ALL DIFFERENTS === */
 buildIDCoursesList([X],[I]):-getIDCourse(X,I),!.
