@@ -38,8 +38,8 @@ ects([
 ]).
 
 finalSkills([
-[ 0, 0 ],
-[ 1, 2 ],
+[ 0, 2 ],
+[ 1, 3 ],
 [ 5, 3 ]
 ]).
 
@@ -147,6 +147,10 @@ timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is div(Po
 timeConstraintsCaller(Course, PositionInSol):-timeConstraintsSolver(Course, PositionInSol).
 
 /* === PREREQUISITE CONSTRAINTS */
+preventMasteryOverflow(X,X):-X>=0, X=<100.
+preventMasteryOverflow(X,0):-X < 0.
+preventMasteryOverflow(X,100):-X > 100.
+
 prerequisiteConstraintsSolverFzDc(_, []).
 prerequisiteConstraintsSolverFzDc(_, [[]]).
 prerequisiteConstraintsSolverFzDc(FuzzySet, [[P,VP]|Prereq]):- member([P,V],FuzzySet),V>=VP, prerequisiteConstraintsSolverFzDc(FuzzySet, Prereq).
@@ -165,7 +169,7 @@ computeDecay([_, [M], [T]], UpperTF, SLevel):- nbCourseBySemester(N), CurrentSem
 computeDecay([SID, [M1,M2|M], [T1,T2|T]], UpperTF, SLevel):-
   nbCourseBySemester(N),
   CS1 is div(T1,N), CS2 is div(T2,N), Range is CS2 - CS1,
-  decayFunction(Range,Y), TmpSLevel is M1-Y, computeDecay([SID, [M2|M], [T2|T]], UpperTF, TmpSLevel2), SLevel is TmpSLevel + TmpSLevel2.
+  decayFunction(Range,Y), TmpSLevel is M1-Y, computeDecay([SID, [M2|M], [T2|T]], UpperTF, TmpSLevel2), BeforeSLevel is TmpSLevel + TmpSLevel2, preventMasteryOverflow(BeforeSLevel,SLevel).
 
 exploreMasteryByCourse([],_,Struct,Struct):-!.
 exploreMasteryByCourse([[_,Skills|_]],Depth,Struct,NewStruc):-exploreMasteryByCourseSkills(Skills, Depth,Struct,NewStruc),!.
