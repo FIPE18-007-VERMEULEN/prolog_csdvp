@@ -38,9 +38,9 @@ ects([
 ]).
 
 finalSkills([
-[ 0, 2 ],
-[ 1, 4 ],
-[ 5, 4 ]
+[ 0, 0 ],
+[ 1, 2 ],
+[ 5, 3 ]
 ]).
 
 courses([
@@ -64,7 +64,7 @@ courses([
   ],
   [ 2, /* course 2 */
     [ [0,50], [2,50], [5,25] ], /* skills given */
-    [ [5, 3] ], /* prerequisite */
+    [ [5, 2] ], /* prerequisite */
     [ 2, 3 ], /* time frame */
     [ 2 ] /* ects */
   ],
@@ -98,7 +98,7 @@ courses([
 minECTS(8).
 nbSemester(4).
 nbCourses(5).
-nbCourseBySemester(2).
+nbCourseBySemester(1).
 
 /* === GETTER AND UTILITY === */
 getIDCourse([I|_], I).
@@ -118,7 +118,7 @@ ectsConstraintsSolver([X|Y],V):- ectsConstraintsSolver(Y,V+X).
 ectsListBuilder([X],A):-nth0(4,X,A).
 ectsListBuilder([X|Y],K):-nth0(4,X,A),ectsListBuilder(Y,L), append(A,L,K).
 
-ectsConstraintsCaller(X):- ectsListBuilder(X,L), write(X), ectsConstraintsSolver(L,0).
+ectsConstraintsCaller(X):- ectsListBuilder(X,L), ectsConstraintsSolver(L,0).
 
 /* === FUZZYFICATION PLACEBO ENGINE  === */
 fuzzifyMastery(X,0):-X >= 0, X < 20.%fuzzifyMastery(Value,MasterySet)
@@ -128,7 +128,8 @@ fuzzifyMastery(X,3):-X >= 60,X < 80.
 fuzzifyMastery(X,4):-X >=80.
 
 /* === DECAY FUNCTION === */
-decayFunction(X,Y):- Y is exp((X / 1.25)) + 5.
+% decayFunction(X,Y):- Y is exp((X / 1.25)) + 5.
+decayFunction(X,X).
 
 /* === ALL DIFFERENTS === */
 buildIDCoursesList([X],[I]):-getIDCourse(X,I),!.
@@ -146,41 +147,62 @@ timeConstraintsSolver(Course,PositionInSol):- nbCourseBySemester(C), X is div(Po
 timeConstraintsCaller(Course, PositionInSol):-timeConstraintsSolver(Course, PositionInSol).
 
 /* === PREREQUISITE CONSTRAINTS */
-% prerequisiteConstraintsCaller2(CurrentSol,CtoCheck,Length):- prerequisiteConstraintsSolver(CurrentSol,CtoCheck),
-%   nbCourseBySemester(N), TimeFrame is div(Length,N),
-%   getSkillsValueAcquired(CurrentSol,Sks),
-%   getPrereqValueAcquired([C],Prq),
-%   prerequisiteConstraintsSolver2(Sks,Prq,TimeFrame).
-%
-% prerequisiteSolver(CurrentSol, CtoCheck, TimeFrame):-courseIncludeSkillsForPrereq(),
-% courseIncludeSkillsForPrereq().
-% timeIntervalForSkill(Skill,Courses,Distance).
-%
-% a(CurrentSol,[_,_,[P|Ps],_]):-b(CurrentSol,P),a(CurrentSol,[_,_,[Ps],_]).
-%
-% b([],_).
-% b([C],[PID,Set]):-checkIfCourseContainsSkill(C,PID,V), UpdateV in global list
-% b([C|Y],[PID,Set]):-checkIfCourseContainsSkill(C,PID,V),
-% b([_|Y],P):-b(Y,P).
+prerequisiteConstraintsSolverFzDc(_, []).
+prerequisiteConstraintsSolverFzDc(_, [[]]).
+prerequisiteConstraintsSolverFzDc(FuzzySet, [[P,VP]|Prereq]):- member([P,V],FuzzySet),V>=VP, prerequisiteConstraintsSolverFzDc(FuzzySet, Prereq).
 
-checkIfCourseContainsSkill([_,[[]]|_],_,_):-fail.
-checkIfCourseContainsSkill([_,[[S,M]]|_],S,[S,M]):-!.
-checkIfCourseContainsSkill([_,[[S,M]|_]|_],S,[S,M]):-!.
-checkIfCourseContainsSkill([_,[[S,_]|Skills]|_],SID,M):-checkIfCourseContainsSkill([_,Skills,_],SID,M).
+% e.g.: courses(C), exploreMasteryByCourse(C,0,[],N), nbSemester(S),exploreForComputeDecay(N,S,[],L), fuzzifyCurrentSkills(L,F).
+
+fuzzifyCurrentSkills([],[]).
+fuzzifyCurrentSkills([[SID,M]|Skills],[[SID,Set]|L1]):-fuzzifyCurrentSkills(Skills,L1),fuzzifyMastery(M,Set).
+
+exploreForComputeDecay([],_,L, L).
+exploreForComputeDecay([ [SID,M,T] | Skills ], UpperTF, L, SLevels):- exploreForComputeDecay(Skills, UpperTF,L,TmpS),computeDecay([SID,M,T],UpperTF,SLevel), append(TmpS,[[SID,SLevel]],SLevels).
+
+computeDecay([],_,0).
+computeDecay([_, [M], [T]], UpperTF, SLevel):- nbCourseBySemester(N), CurrentSemester is div(T,N), CS2 is div(UpperTF,N), Range is CS2-CurrentSemester, decayFunction(Range,Y), SLevel is M - Y.
+% computeDecay([_, [M1,M2], [T1,T2]], UpperTF, SLevel):- nbCourseBySemester(N), CS1 is div(T1,N), CS2 is div(T2,N), Range is CS2 - CS1, decayFunction(Range,Y), SLevel is M-Y.
+computeDecay([SID, [M1,M2|M], [T1,T2|T]], UpperTF, SLevel):-
+  nbCourseBySemester(N),
+  CS1 is div(T1,N), CS2 is div(T2,N), Range is CS2 - CS1,
+  decayFunction(Range,Y), TmpSLevel is M1-Y, computeDecay([SID, [M2|M], [T2|T]], UpperTF, TmpSLevel2), SLevel is TmpSLevel + TmpSLevel2.
+
+exploreMasteryByCourse([],_,Struct,Struct):-!.
+exploreMasteryByCourse([[_,Skills|_]],Depth,Struct,NewStruc):-exploreMasteryByCourseSkills(Skills, Depth,Struct,NewStruc),!.
+exploreMasteryByCourse([ [_,Skills|_]|Y ],Depth,Struct,NewStruc):-exploreMasteryByCourseSkills(Skills,Depth,Struct,TmpStruc),!,
+D is Depth + 1, exploreMasteryByCourse(Y,D,TmpStruc,NewStruc).
+
+exploreMasteryByCourseSkills([],_,Struct,Struct):-!.
+exploreMasteryByCourseSkills([S],Depth,Struct,NewStruc):-constructOccSkillList(S,Depth,Struct,NewStruc).
+exploreMasteryByCourseSkills([S|Skills],Depth, Struct, NewStruc):-
+  constructOccSkillList(S,Depth,Struct,TmpStruc), exploreMasteryByCourseSkills(Skills,Depth,TmpStruc,NewStruc).
+
+%Struct is [ [SkillID, [SkillV1,...,SkillVn], [Depth1,...,Depthn]], ... m ]
+constructOccSkillList([],_,Struct,Struct):-!.
+constructOccSkillList([S,M],Depth,Struct,NewStruc):-
+  member([S,Values,When],Struct),!,append(Values,[M],NV),append(When,[Depth],ND),
+  subtract(Struct,[[S,Values,When]],TmpS),append(TmpS,[[S,NV,ND]],NewStruc).
+constructOccSkillList([S,M],Depth,Struct,NewStruc):- !, append(Struct,[[S,[M],[Depth]]],NewStruc).
 
 decayManager([S,_],Range,DecayedSkills, NewDS):- member([S,K],DecayedSkills),!,decayFunction(Range,Y), V is K - Y, subtract(DecayedSkills,[[S,K]],TmpDS),append(TmpDS,[[S,V]],NewDS).
-decayManager([S,M],Range,DecayedSkills, [[S,V]|DecayedSkills]):- decayFunction(Range,Y), V is M - Y.
+decayManager([S,M],Range,DecayedSkills, NewDS):- decayFunction(Range,Y), V is M - Y, append(DecayedSkills,[[S,V]],NewDS).
 
 
 prerequisiteConstraintsSolver(S,C):-getOnlySkills(S,Skills),getOnlyPrereq([C],Prereq), subset(Prereq,Skills),!.
 
 prerequisiteConstraintsCaller(CurrentSol,CtoCheck):- prerequisiteConstraintsSolver(CurrentSol,CtoCheck).
+prerequisiteConstraintsCallerFzDc(CurrentSol, [CtoCheckID,_,Prereq|_]):-
+  prerequisiteConstraintsSolver(CurrentSol,[CtoCheckID,_,Prereq,_]), %we keep this call. even with fuzzy+decay : faster than fuzzy if prereq does not exist !
+  exploreMasteryByCourse(CurrentSol,0,[],N), length(CurrentSol,Size), exploreForComputeDecay(N,Size,[],L), fuzzifyCurrentSkills(L,F),
+  prerequisiteConstraintsSolverFzDc(F,Prereq).
 
 /* === FINAL SKILLS CONSTRAINTS */
 finalSkillsConstraintsSolver(CurrentSol, FinalSkills):- getOnlySkills(CurrentSol,S), flattenSkill(FinalSkills,F), subset(F,S),!.
 
 finalSkillsConstraintsCaller(CurrentSol):- finalSkills(F), finalSkillsConstraintsSolver(CurrentSol, F).
-
+finalSkillsConstraintsCallerFzDc(CurrentSol):- finalSkills(FS),
+  exploreMasteryByCourse(CurrentSol,0,[],N), length(CurrentSol,Size), exploreForComputeDecay(N,Size,[],L), fuzzifyCurrentSkills(L,F),
+  prerequisiteConstraintsSolverFzDc(F,FS).
 /* === SKILLS ACQUIRED */
   /* === SKILLS + MASTERY */
     getSkillsValueAcquired([],[]).
@@ -208,10 +230,10 @@ solve(S):-
 
 chooseNewCourse(C,OneC,Tabou):- member(OneC, C).
 
-searchSolutions(_,S,S,_):- isNbCoursesIsEQ(S),!, ectsConstraintsCaller(S), finalSkillsConstraintsCaller(S), displaySolution(S).
+searchSolutions(_,S,S,_):- isNbCoursesIsEQ(S),!, ectsConstraintsCaller(S), finalSkillsConstraintsCallerFzDc(S), displaySolution(S).
 searchSolutions(C,S,Sol,Tabou):-  isNbCoursesIsLT(S), length(S, SizeOfS),
                                   chooseNewCourse(C,OneC,Tabou), %Backtracker
                                   timeConstraintsCaller(OneC, SizeOfS), %check if the course picked is ok
-                                  prerequisiteConstraintsCaller(S,OneC),
+                                  prerequisiteConstraintsCallerFzDc(S,OneC),
                                   append(S,[OneC],N), allDiff(N),
                                   searchSolutions(C,N,Sol,Tabou).
