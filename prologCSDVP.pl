@@ -1,104 +1,104 @@
-skill([
-[ [1,75], [4,50] ],
-[ [3,50], [1,25], [4,50] ],
-[ [0,50], [2,50], [5,25] ],
-[ [5,50]],
-[ [1,35], [2,25], [5,5] ],
-[ [6,40], [3,45], [1,10]],
-[ [0,25], [2,40] ]
-]).
-
-prereq([
-[ [] ],
-[ [1,3] ],
-[ [5,3] ],
-[ [1,4], [4,2] ],
-[ [2,2], [4,4] ],
-[ [3,4] ]
-]).
-
-timeFrame([
-[ 0 ],
-[ 1, 2 ],
-[ 2, 3 ],
-[ 1, 2 ],
-[ 2, 3, 4],
-[ 2, 5, 6],
-[ 3, 5, 6]
-]).
-
-ects([
-[ 2 ],
-[ 2 ],
-[ 2 ],
-[ 2 ],
-[ 2 ],
-[ 2 ],
-[ 2 ]
-]).
-
-finalSkills([
-[ 0, 2 ],
-[ 1, 3 ],
-[ 5, 3 ]
-]).
-
-courses([
-  [ -1, /* EMPTY COURSE */
-    [ [] ], /* skills given */
-    [ [] ], /* prerequisite */
-    [ 0, 1, 2, 3, 4 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 0, /* course 0*/
-    [ [1, 75], [4, 50] ], /* skills given */
-    [ [] ], /* prerequisite */
-    [ 0 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 1, /* course 1*/
-    [ [3, 50], [1, 25] ], /* skills given */
-    [ [1, 3] ], /* prerequisite */
-    [ 1, 2 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 2, /* course 2 */
-    [ [0,50], [2,50], [5,25] ], /* skills given */
-    [ [5, 2] ], /* prerequisite */
-    [ 2, 3 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 3, /* course 3 */
-    [ [5,50] ], /* skills given */
-    [ [1,4], [4,2] ], /* prerequisite */
-    [ 1, 2 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 4, /* course 4 */
-    [ [1,35], [2,25], [5,5] ], /* skills given */
-    [ [2,2], [4,4] ], /* prerequisite */
-    [ 2, 3, 4 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 5, /* course 5 */
-    [ [6,40], [3,45], [1,10] ], /* skills given */
-    [ [2,2], [4,4] ], /* prerequisite */
-    [ 2, 5, 6 ], /* time frame */
-    [ 2 ] /* ects */
-  ],
-  [ 6, /* course 6 */
-    [ [0,25], [2,40] ], /* skills given */
-    [ [3,4] ], /* prerequisite */
-    [ 3, 5, 6 ], /* time frame */
-    [ 3 ] /* ects */
-  ]
-]).
-
-/* === GLOBAL CONFIGURATION */
-minECTS(8).
-nbSemester(4).
-nbCourses(5).
-nbCourseBySemester(1).
+% skill([
+% [ [1,75], [4,50] ],
+% [ [3,50], [1,25], [4,50] ],
+% [ [0,50], [2,50], [5,25] ],
+% [ [5,50]],
+% [ [1,35], [2,25], [5,5] ],
+% [ [6,40], [3,45], [1,10]],
+% [ [0,25], [2,40] ]
+% ]).
+%
+% prereq([
+% [ [] ],
+% [ [1,3] ],
+% [ [5,3] ],
+% [ [1,4], [4,2] ],
+% [ [2,2], [4,4] ],
+% [ [3,4] ]
+% ]).
+%
+% timeFrame([
+% [ 0 ],
+% [ 1, 2 ],
+% [ 2, 3 ],
+% [ 1, 2 ],
+% [ 2, 3, 4],
+% [ 2, 5, 6],
+% [ 3, 5, 6]
+% ]).
+%
+% ects([
+% [ 2 ],
+% [ 2 ],
+% [ 2 ],
+% [ 2 ],
+% [ 2 ],
+% [ 2 ],
+% [ 2 ]
+% ]).
+%
+% finalSkills([
+% [ 0, 2 ],
+% [ 1, 3 ],
+% [ 5, 3 ]
+% ]).
+%
+% courses([
+%   [ -1, /* EMPTY COURSE */
+%     [ [] ], /* skills given */
+%     [ [] ], /* prerequisite */
+%     [ 0, 1, 2, 3, 4 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 0, /* course 0*/
+%     [ [1, 75], [4, 50] ], /* skills given */
+%     [ [] ], /* prerequisite */
+%     [ 0 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 1, /* course 1*/
+%     [ [3, 50], [1, 25] ], /* skills given */
+%     [ [1, 3] ], /* prerequisite */
+%     [ 1, 2 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 2, /* course 2 */
+%     [ [0,50], [2,50], [5,25] ], /* skills given */
+%     [ [5, 2] ], /* prerequisite */
+%     [ 2, 3 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 3, /* course 3 */
+%     [ [5,50] ], /* skills given */
+%     [ [1,4], [4,2] ], /* prerequisite */
+%     [ 1, 2 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 4, /* course 4 */
+%     [ [1,35], [2,25], [5,5] ], /* skills given */
+%     [ [2,2], [4,4] ], /* prerequisite */
+%     [ 2, 3, 4 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 5, /* course 5 */
+%     [ [6,40], [3,45], [1,10] ], /* skills given */
+%     [ [2,2], [4,4] ], /* prerequisite */
+%     [ 2, 5, 6 ], /* time frame */
+%     [ 2 ] /* ects */
+%   ],
+%   [ 6, /* course 6 */
+%     [ [0,25], [2,40] ], /* skills given */
+%     [ [3,4] ], /* prerequisite */
+%     [ 3, 5, 6 ], /* time frame */
+%     [ 3 ] /* ects */
+%   ]
+% ]).
+%
+% /* === GLOBAL CONFIGURATION */
+% minECTS(8).
+% nbSemester(4).
+% nbCourses(5).
+% nbCourseBySemester(1).
 
 /* === GETTER AND UTILITY === */
 getIDCourse([I|_], I).
