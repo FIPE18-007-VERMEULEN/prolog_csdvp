@@ -3,8 +3,16 @@ TODO
 
 # With Decay time
 
+384,301 inferences, 0.037 CPU in 0.037 seconds (100% CPU, 10470219 Lips)
+
 # Without Decay time
+
+789,804 inferences, 0.061 CPU in 0.061 seconds (100% CPU, 13029911 Lips)
 
 # With Decay Sol
 
+EMPTY
+
 # Without Decay Sol
+
+EMPTY (false)
