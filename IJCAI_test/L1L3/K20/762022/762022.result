@@ -1,10 +1,16 @@
 # STATUS
-TODO
+OK
 
 # With Decay time
 
+539,220 inferences, 0.043 CPU in 0.043 seconds (100% CPU, 12558515 Lips)
+
 # Without Decay time
 
+2,139,799 inferences, 0.164 CPU in 0.164 seconds (100% CPU, 13013878 Lips)
+
 # With Decay Sol
+
+EMPTY
 
 # Without Decay Sol
