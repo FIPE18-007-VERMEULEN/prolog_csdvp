@@ -8,6 +8,8 @@ OK
 # Without Decay time
 
 1,537,613,350 inferences, 319.955 CPU in 319.976 seconds (100% CPU, 4805719 Lips) (bad sol)
++
+3,171,945,023 inferences, 407.541 CPU in 407.545 seconds (100% CPU, 7783135 Lips) (good one ; tot 4,6+)
 
 # With Decay Sol
 
@@ -54,3 +56,26 @@ Course-1
 Course-1
 Course-1
 Course-1
+
+THEN (good one)
+Course-1
+Course-1
+Course-1
+Course-1
+Course5
+Course16
+Course10
+Course19
+Course26
+Course31
+Course42
+Course40
+Course-1
+Course-1
+Course-1
+Course-1
+Course-1
+Course-1
+Course-1
+Course-1
+
